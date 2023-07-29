@@ -8,6 +8,8 @@
 import UIKit
 
 public extension Int {
+    
+    var string: String { "\(self)" }
 
     var float: Float { .init(self) }
 

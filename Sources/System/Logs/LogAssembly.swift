@@ -7,7 +7,7 @@
 
 import Swinject
 
-public extension Log { final class Assembly { } }
+public extension Log { final class Assembly { public init() { } } }
 
 extension Log.Assembly : Swinject.Assembly {
 
