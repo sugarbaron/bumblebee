@@ -14,7 +14,7 @@ public final class FifoRing<Element> {
     private var writeIndex: Int
     private let mutex: NSRecursiveLock
     
-    init(size: Int) {
+    public init(size: Int) {
         self.elements = Array(repeating: nil, count: size)
         self.readIndex = 0
         self.writeIndex = 0

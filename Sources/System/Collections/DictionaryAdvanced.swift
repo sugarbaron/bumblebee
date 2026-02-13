@@ -26,3 +26,14 @@ public extension Dictionary {
     static func -=(lhs: inout [Key : Value], rhs: [Key : Value]) { rhs.forEach { lhs.removeValue(forKey: $0.key) } }
     
 }
+
+public extension Dictionary where Key == String {
+    
+    func convert() -> [Int : Value] {
+        reduce(into: [ : ]) { map, accordance in
+            guard let key: Int = accordance.key.int else { return }
+            map[key] = accordance.value
+        }
+    }
+    
+}

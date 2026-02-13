@@ -9,29 +9,46 @@ import Foundation
 
 public final class ConcurrentMap<K : Hashable, V> {
     
-    private let serialQueue: OperationQueue
+    private let mutex: NSRecursiveLock
     private var map: [K : V]
     
     public init() {
-        self.serialQueue = OperationQueue()
-        self.serialQueue.maxConcurrentOperationCount = 1
+        self.mutex = NSRecursiveLock()
         self.map = [ : ]
     }
     
     public subscript(key: K) -> V? {
         get {
             var value: V? = nil
-            let getAction = BlockOperation { [weak self] in value = self?.map[key] }
-            serialQueue.addOperation(getAction)
-            getAction.waitUntilFinished()
+            mutex.lock()
+            value = map[key]
+            mutex.unlock()
             return value
         }
         
         set(newValue) {
-            let setAction = BlockOperation { [weak self] in self?.map[key] = newValue }
-            serialQueue.addOperation(setAction)
-            setAction.waitUntilFinished()
+            mutex.lock()
+            map[key] = newValue
+            mutex.unlock()
         }
     }
+    
+    public func access(_ action: ([K : V]) -> Void) {
+        mutex.lock()
+        action(map)
+        mutex.unlock()
+    }
+    
+    public var isEmpty: Bool {
+        mutex.lock()
+        defer { mutex.unlock() }
+        return map.isEmpty
+    }
+    
+    public var isNotEmpty: Bool { isEmpty == false }
+    
+    public static func <~(_ safe: ConcurrentMap, _ update: [K : V]) { safe.write(update) }
+    
+    private func write(_ update: [K : V]) { mutex.lock(); map = update; mutex.unlock() }
     
 }
