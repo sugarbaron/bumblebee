@@ -7,6 +7,8 @@
 
 import Foundation
 
+public typealias ImageContent = Data
+
 public extension Data {
 
     var string: String? { String(data: self, encoding: .utf8) }

@@ -5,6 +5,7 @@
 //  Created by sugarbaron on 19.11.2021.
 //
 
+import Foundation
 import UIKit
 
 public extension Int {
@@ -14,8 +15,12 @@ public extension Int {
     var float: Float { .init(self) }
 
     var double: Double { .init(self) }
+    
+    var timeInterval: TimeInterval { .init(self) }
 
     var cgFloat: CGFloat { .init(self) }
+    
+    var hexString: String { String(format: "0x%X", self) }
     
     func restrict(_ range: Range<Int>) -> Int {
         if self < range.lowerBound { return range.lowerBound }

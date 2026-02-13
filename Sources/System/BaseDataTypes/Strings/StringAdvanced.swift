@@ -114,6 +114,8 @@ public extension String {
     var urlDecoded: String? { removingPercentEncoding }
     
     var url: URL? { .init(self) }
+    
+    func trim(_ characters: CharacterSet) -> String { trimmingCharacters(in: characters) }
 
 }
 
