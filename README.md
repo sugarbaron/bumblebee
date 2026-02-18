@@ -2,7 +2,7 @@
 
 ### * structured concurrency tools:
 
-```
+``` swift
 // queue over async/await structured concurrency:
 let background: Async.Fifo = .init()
 background.enqueue { [weak self] in await self?.parseNext() }
@@ -17,7 +17,7 @@ await idle(seconds)
 
 ### * expressive and laconic access and transformations:
 
-```
+``` swift
 print("0x\(data.hexString))" // prints: 0xdeadbeef
 let number: Int = double.int // Double -> Int
 let random: Int = UUID().int // random int
