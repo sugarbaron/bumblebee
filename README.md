@@ -1,9 +1,24 @@
 # lightweight and useful toolkit with beautiful syntax!
 
+### * structured concurrency tools:
+
+```
+// queue over async/await structured concurrency:
+let background: Async.Fifo = .init()
+background.enqueue { [weak self] in await self?.parseNext() }
+
+// main actor control:
+onMain       { [weak self] in await self?.controlUi() }
+inBackground { [weak self] in await self?.heavyWork() }
+
+// pause:
+await idle(seconds)
+```
+
 ### * expressive and laconic access and transformations:
 
 ```
-print("0x\(data.hexString)"  // prints: 0xdeadbeef
+print("0x\(data.hexString))" // prints: 0xdeadbeef
 let number: Int = double.int // Double -> Int
 let random: Int = UUID().int // random int
 Bundle.version.build         // 1.5.0

@@ -29,11 +29,18 @@ public extension Async {
 // MARK: interface
 public extension Async.Fifo {
     
-    func enqueue(_ coroutine: @Sendable @escaping () async throws -> Void,
-                 catch: @escaping (Error) -> Void = { log(error: "[Async.Fifo] coroutine throws: \($0)") }) {
+    func enqueue(
+        priority: TaskPriority = .low,
+        _ coroutine: @Sendable @escaping () async throws -> Void,
+        catch: @escaping (Error) -> Void = { log(error: "[Async.Fifo] coroutine throws: \($0)") }
+    ) {
         schedule(coroutine, `catch`)
-        inBackground { [weak self] in await self?.executeSequentally() }
+        inBackground(priority: priority) { [weak self] in
+            await self?.executeSequentally()
+        }
     }
+    
+    var isIdling: Bool { isBusy == false }
     
     var isBusy: Bool {
         access.lock()
@@ -49,7 +56,7 @@ public extension Async.Fifo {
         return size
     }
     
-    func cancelAll() {
+    func cancelPending() {
         access.lock()
         queue = [ ]
         access.unlock()

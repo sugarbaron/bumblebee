@@ -35,30 +35,35 @@ public extension Async {
 // MARK: interface
 public extension Async.Debounce {
     
-    func schedule(_ action: @Sendable @escaping () async throws -> Void,
-                  catch: @escaping (Error) -> Void = { log(error: "[Async.Debounce] action error: \($0)") }) {
+    func schedule(
+        _ action: @Sendable @escaping () async throws -> Void,
+        catch: @escaping (Error) -> Void = { log(error: "[Async.Debounce] action error: \($0)") }
+    ) {
         access.lock()
         self.action = action
         self.catch = `catch`
-        self.fireTime = now + latency
+        self.fireTime = .now + latency
         access.unlock()
         if background.isBusy { return }
         background.enqueue { [weak self] in await self?.debounce() }
     }
     
-    private func debounce() async {
+}
+
+// MARK: tools
+private extension Async.Debounce {
+    
+    func debounce() async {
         while let tillFire: TimeInterval, tillFire > 0 { await idle(tillFire) }
         do    { try await action() }
         catch { `catch`(error) }
     }
     
-    private var tillFire: TimeInterval? {
+    var tillFire: TimeInterval? {
         access.lock()
-        let tillFire: TimeInterval = fireTime - now
+        let tillFire: TimeInterval = fireTime - .now
         access.unlock()
         return tillFire
     }
-    
-    private var now: Date { .init() }
     
 }

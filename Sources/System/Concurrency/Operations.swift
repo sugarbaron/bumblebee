@@ -46,7 +46,7 @@ public extension OperationQueue {
     
 }
 
-private class AutoCancellableOperation : Operation {
+private class AutoCancellableOperation : Operation, @unchecked Sendable {
 
     private let action: () -> Void
 
@@ -62,7 +62,7 @@ private class AutoCancellableOperation : Operation {
 
 }
 
-private class ManualCancellableOperation : Operation {
+private class ManualCancellableOperation : Operation, @unchecked Sendable {
 
     private var action: ((() -> Bool) -> Void)? = nil
 
