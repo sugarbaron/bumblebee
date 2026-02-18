@@ -6,36 +6,44 @@
 //
 
 import SwiftUI
+import UIKit
 
 // MARK: constructor
 /// a color with each component in range `0...255`
-public final class Rgb {
+public final class Rgb : ExpressibleByIntegerLiteral {
     
     public let r: Int
     public let g: Int
     public let b: Int
     public let a: Int
     
-    public init(_ r: Int, _ g: Int, _ b: Int, alpha a: Int = 0xFF) {
+    public init(r: Int, g: Int, b: Int, a: Int = 0xFF) {
         self.r = r.restrict(0...0xFF)
         self.g = g.restrict(0...0xFF)
         self.b = b.restrict(0...0xFF)
         self.a = a.restrict(0...0xFF)
     }
     
+    public convenience init(_ hex: Int) { self.init(integerLiteral: hex) }
+    
+    public convenience init(integerLiteral hex: Int) {
+        let color: (r: Int, g: Int, b: Int, a: Int) = hex.color
+        self.init(r: color.r, g: color.g, b: color.b, a: color.a)
+    }
+    
 }
 
 // MARK: interface
-extension Rgb : ExpressibleByIntegerLiteral, Equatable, Hashable {
+public extension Rgb {
     
-    public var hex: Int {
+    var hex: Int {
         let r: Int = r << 24
         let g: Int = g << 16
         let b: Int = b << 8
         return r | g | b | a
     }
     
-    public var ui: Color {
+    var ui: Color {
         let r: Double = r.double / 255.0
         let g: Double = g.double / 255.0
         let b: Double = b.double / 255.0
@@ -43,12 +51,17 @@ extension Rgb : ExpressibleByIntegerLiteral, Equatable, Hashable {
         return Color(red: r, green: g, blue: b, opacity: a)
     }
     
-    public convenience init(_ hex: Int) { self.init(integerLiteral: hex) }
+    var rrggbb: String { String(format: "%02X", hex >> 8) }
     
-    public convenience init(integerLiteral hexCode: Int) {
-        let color: Rgba = hexCode.color
-        self.init(color.r, color.g, color.b, alpha: color.a)
-    }
+    var rrggbbaa: String { String(format: "%02X", hex) }
+    
+    var uiColor: UIColor { .init(rgb: self) }
+    
+    static let eyebleed: Rgb = 0xFF10A0FF.rgb
+    
+}
+
+extension Rgb  : Equatable, Hashable {
     
     public static func == (lhs: Rgb, rhs: Rgb) -> Bool {
            lhs.r == rhs.r
@@ -58,8 +71,6 @@ extension Rgb : ExpressibleByIntegerLiteral, Equatable, Hashable {
     }
     
     public func hash(into hasher: inout Hasher) { hasher.combine([r, g, b, a]) }
-    
-    public static let eyebleed: Rgb = 0xFF10A0FF.rgb
     
 }
 
@@ -79,14 +90,40 @@ public extension UIColor {
 public extension CGColor {
     
     var rgb: Rgb {
-        guard let decomposed: [CGFloat] = components,
-              let r: CGFloat = decomposed.at(0),
-              let g: CGFloat = decomposed.at(1),
-              let b: CGFloat = decomposed.at(2)
-        else { return Rgb(0xFF0000FF) }
-        
-        let a: CGFloat = decomposed.at(3) ?? 1.0
-        return Rgb(Int(r * 0xFF), Int(g * 0xFF), Int(b * 0xFF), alpha: Int(a * 0xFF))
+        switch numberOfComponents {
+        case 1:
+            let level: Int = 0xFF * (components?[safe: 0]?.int ?? 0)
+            return Rgb(r: level, g: level, b: level, a: 0xFF)
+        case 2:
+            let level: Int = 0xFF * (components?[safe: 0]?.int ?? 0)
+            let alpha: Int = 0xFF * (components?[safe: 1]?.int ?? 0)
+            return Rgb(r: level, g: level, b: level, a: alpha)
+        case 3:
+            let r: Int = 0xFF * (components?[safe: 0]?.int ?? 0)
+            let g: Int = 0xFF * (components?[safe: 1]?.int ?? 0)
+            let b: Int = 0xFF * (components?[safe: 2]?.int ?? 0)
+            return Rgb(r: r, g: g, b: b, a: 0xFF)
+        case 4:
+            let r: Int = 0xFF * (components?[safe: 0]?.int ?? 0)
+            let g: Int = 0xFF * (components?[safe: 1]?.int ?? 0)
+            let b: Int = 0xFF * (components?[safe: 2]?.int ?? 0)
+            let a: Int = 0xFF * (components?[safe: 3]?.int ?? 0)
+            return Rgb(r: r, g: g, b: b, a: a)
+        default:
+            return Rgb(r: 0, g: 0, b: 0, a: 0)
+        }
+    }
+    
+}
+
+public extension UIColor {
+    
+    convenience init(rgb: Rgb) {
+        let r: CGFloat = rgb.r.cgFloat / 0xFF
+        let g: CGFloat = rgb.g.cgFloat / 0xFF
+        let b: CGFloat = rgb.b.cgFloat / 0xFF
+        let a: CGFloat = rgb.a.cgFloat / 0xFF
+        self.init(red: r, green: g, blue: b, alpha: a)
     }
     
 }
@@ -94,8 +131,8 @@ public extension CGColor {
 public extension Int {
     
     var rgb: Rgb {
-        let color: Rgba = color
-        return Rgb(color.r, color.g, color.b, alpha: color.a)
+        let color: (r: Int, g: Int, b: Int, a: Int) = color
+        return Rgb(r: color.r, g: color.g, b: color.b, a: color.a)
     }
     
 }
@@ -111,14 +148,14 @@ public extension String {
         let red:   Int = .init((colorCode & 0xFF0000) >> 16)
         let green: Int = .init((colorCode & 0x00FF00) >> 8)
         let blue:  Int = .init((colorCode & 0x0000FF))
-        return Rgb(red, green, blue)
+        return Rgb(r: red, g: green, b: blue, a: 0xFF)
     }
     
 }
 
 private extension Int {
     
-    var color: Rgba {
+    var color: (r: Int, g: Int, b: Int, a: Int) {
         let r: Int = (0xFF000000 & self) >> 24
         let g: Int = (0x00FF0000 & self) >> 16
         let b: Int = (0x0000FF00 & self) >> 8
@@ -127,5 +164,3 @@ private extension Int {
     }
     
 }
-
-private typealias Rgba = (r: Int, g: Int, b: Int, a: Int)

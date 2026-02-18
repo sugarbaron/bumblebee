@@ -30,18 +30,18 @@ public extension CoreDataStorage.DataStream.Update {
     var items: [R.DataClass] { threadSafe { controller.fetchedObjects ?? [ ] }.compactMap { $0.original } }
     
     func item(at index: IndexPath) -> R.DataClass? { threadSafe {
-        guard let section: Section = controller.sections?.at(index.section),
-              let item: R = section.objects?.at(index.item) as? R
+        guard let section: Section = controller.sections?[safe: index.section],
+              let item: R = section.objects?[safe: index.item] as? R
         else { return nil }
         return item
     }?.original }
     
     func items(of sectionIndex: Int) -> [R.DataClass] { threadSafe {
-        guard let section: Section = controller.sections?.at(sectionIndex) else { return [ ] }
+        guard let section: Section = controller.sections?[safe: sectionIndex] else { return [ ] }
         return section.objects?.compactMap { $0 as? R } ?? [ ]
     }.compactMap { $0.original } }
     
-    func sectionName(at index: Int) -> String? { threadSafeRead { controller.sections?.at(index)?.name } }
+    func sectionName(at index: Int) -> String? { threadSafeRead { controller.sections?[safe: index]?.name } }
     
     var itemsNumber: Int { threadSafeRead { controller.fetchedObjects?.count } ?? 0 }
     

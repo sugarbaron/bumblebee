@@ -10,8 +10,8 @@ import Combine
 
 public final class Keyboard : ObservableObject {
     
-    @Published public private (set) var status: Status
-    @Published public private (set) var size: CGSize
+    @Published public private(set) var status: Status
+    @Published public private(set) var size: CGSize
     
     private var subscriptions: [AnyCancellable] = [ ]
     
